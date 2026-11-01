@@ -147,6 +147,29 @@
     .review-a { margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.5; }
     .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
     footer { text-align: center; margin: 25px 0 0; color: #8791aa; font-size: 11px; }
+
+    .obstacle-shell { max-width: 790px; margin: 0 auto; }
+    .obstacle-card { padding: clamp(20px, 4vw, 32px); }
+    .obstacle-clue-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 16px 0 20px; }
+    .obstacle-clue-dot { padding: 10px 6px; text-align: center; border-radius: 12px; background: #f1f4fb; color: #66718b; border: 1px solid #e1e7f3; font-size: 11px; font-weight: 800; }
+    .obstacle-clue-dot.active { background: #eaf0ff; border-color: #9aabef; color: #324da8; }
+    .obstacle-clue-dot.done { background: #effbf6; border-color: #b8e7d4; color: #176b50; }
+    .obstacle-prompt { padding: 18px; border-radius: 16px; background: #f6f8ff; border: 1px solid #e5eafa; margin: 16px 0; }
+    .obstacle-prompt h3 { margin: 0 0 9px; font-size: 17px; }
+    .obstacle-prompt p { margin: 0; line-height: 1.65; }
+    .obstacle-input { width: 100%; border: 1px solid #d8dfef; border-radius: 12px; padding: 14px 15px; outline: none; background: #fbfcff; color: var(--ink); }
+    .obstacle-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,99,235,.12); }
+    .obstacle-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .obstacle-feedback { display: none; margin-top: 14px; padding: 13px 15px; border-radius: 12px; line-height: 1.55; font-size: 13px; }
+    .obstacle-feedback.show { display: block; }
+    .obstacle-feedback.good { background: #effbf6; color: #176b50; border: 1px solid #c8eedf; }
+    .obstacle-feedback.bad { background: #fff5f5; color: #8b3440; border: 1px solid #f3d4d7; }
+    .obstacle-summary { padding: 18px; border-radius: 16px; background: linear-gradient(135deg, #101b3d, #254b91); color: white; margin-top: 18px; }
+    .obstacle-summary strong { color: var(--gold); font-size: 32px; }
+    .obstacle-hidden { display: none !important; }
+    .obstacle-note { color: var(--muted); font-size: 12px; line-height: 1.55; margin-top: 12px; }
+    @media (max-width: 520px) { .obstacle-clue-list { grid-template-columns: repeat(3, 1fr); } .obstacle-actions button { flex: 1 1 100%; } }
+
     @media (max-width: 700px) {
       .home-grid { grid-template-columns: 1fr; }
       .options { grid-template-columns: 1fr; }
@@ -184,7 +207,8 @@
           <label for="teamName">Tên đội thi</label>
           <input id="teamName" type="text" maxlength="28" placeholder="Ví dụ: Pi-thon, Đội Newton..." autocomplete="off" />
           <button id="startButton" class="primary start-button">BẮT ĐẦU THI THỬ&nbsp; →</button>
-          <p class="sub" style="margin:12px 0 0;font-size:11px">Bộ đề hiện tại chỉ là dữ liệu minh họa. Bạn có thể thay bằng câu hỏi chính thức của CLB trong file <b>questions.js</b>.</p>
+          <button id="obstacleStartButton" class="secondary start-button" type="button">THỬ RIÊNG VÒNG 2 · VƯỢT CHƯỚNG NGẠI VẬT</button>
+          <p class="sub" style="margin:12px 0 0;font-size:11px">Bộ đề hiện tại là bài thi trắc nghiệm demo. Nút bên dưới cho phép luyện riêng Vòng 2 Vượt chướng ngại vật. Bạn có thể thay bằng câu hỏi chính thức của CLB trong file <b>questions.js</b>.</p>
         </section>
 
         <section class="panel">
@@ -205,6 +229,65 @@
         <div id="leaderboardList" class="empty">Chưa có lượt thi nào. Hãy là đội đầu tiên!</div>
         <button id="clearLeaderboard" class="quiet" style="margin-top:12px;padding:9px 12px;font-size:11px">Xóa bảng thành tích</button>
       </section>
+    </section>
+
+    <section id="obstacleScreen" class="screen">
+      <div class="obstacle-shell">
+        <div class="quiz-head">
+          <div class="team-label">VÒNG 2 · ĐỘI ĐANG THI<br><strong id="obstacleTeam">—</strong></div>
+          <div id="obstacleTimerBox" class="timer">◷ <span id="obstacleTimerText">15s</span></div>
+        </div>
+        <div class="panel obstacle-card">
+          <span class="round-label">VƯỢT CHƯỚNG NGẠI VẬT</span>
+          <h2 style="margin:14px 0 6px">Tìm từ khóa bí mật</h2>
+          <p class="sub">Trả lời 4 gợi ý hàng ngang, sau đó mở gợi ý trung tâm. Bạn có thể thử đoán từ khóa sau mỗi gợi ý để nhận mức điểm thưởng cao hơn.</p>
+          <div id="obstacleClueList" class="obstacle-clue-list"></div>
+          <div class="question-meta">
+            <span id="obstacleStepLabel" class="question-number">GỢI Ý 1 / 5</span>
+            <span id="obstacleScoreLabel" class="points">0 ĐIỂM</span>
+          </div>
+          <div class="obstacle-prompt">
+            <h3 id="obstaclePromptTitle">Hàng ngang 1</h3>
+            <p id="obstaclePromptText"></p>
+          </div>
+          <div id="obstacleAnswerArea">
+            <label for="obstacleAnswerInput">Câu trả lời của đội</label>
+            <input id="obstacleAnswerInput" class="obstacle-input" type="text" autocomplete="off" placeholder="Nhập câu trả lời..." />
+            <div class="obstacle-actions">
+              <button id="obstacleSubmitAnswer" class="primary" type="button">GỬI ĐÁP ÁN</button>
+            </div>
+          </div>
+          <div id="obstacleFeedback" class="obstacle-feedback" aria-live="polite"></div>
+          <div id="obstacleAfterAnswer" class="obstacle-actions obstacle-hidden">
+            <button id="obstacleGuessKeyword" class="secondary" type="button">ĐOÁN TỪ KHÓA NGAY</button>
+            <button id="obstacleNextClue" class="quiet" type="button">MỞ GỢI Ý TIẾP THEO</button>
+          </div>
+          <div id="obstacleKeywordArea" class="obstacle-hidden">
+            <div class="obstacle-prompt" style="background:#fff8e8;border-color:#f4dfad">
+              <h3>Chướng ngại vật</h3>
+              <p id="obstacleKeywordPrompt">Nhập từ khóa gồm 12 ký tự (không tính dấu cách).</p>
+            </div>
+            <label for="obstacleKeywordInput">Từ khóa của đội</label>
+            <input id="obstacleKeywordInput" class="obstacle-input" type="text" autocomplete="off" placeholder="Nhập từ khóa..." />
+            <div class="obstacle-actions">
+              <button id="obstacleSubmitKeyword" class="primary" type="button">CHỐT TỪ KHÓA</button>
+              <button id="obstacleCancelKeyword" class="quiet" type="button">QUAY LẠI GỢI Ý</button>
+            </div>
+            <p class="obstacle-note">Theo luật trong tài liệu CLB, trả lời sai từ khóa sẽ bị loại khỏi vòng này. Đây là bản demo luyện tập.</p>
+          </div>
+          <div id="obstacleSummary" class="obstacle-summary obstacle-hidden">
+            <div class="eyebrow">KẾT QUẢ VÒNG 2</div>
+            <h2 id="obstacleResultTitle" style="margin:8px 0">Hoàn thành</h2>
+            <strong id="obstacleFinalScore">0 điểm</strong>
+            <p id="obstacleResultMessage" style="color:#e0e8ff;line-height:1.6"></p>
+            <div class="obstacle-actions">
+              <button id="obstacleRetry" class="primary" type="button">CHƠI LẠI VÒNG 2</button>
+              <button id="obstacleHome" class="quiet" type="button">VỀ TRANG CHỦ</button>
+            </div>
+          </div>
+          <p class="obstacle-note">Nội dung gợi ý và từ khóa được lấy từ tài liệu câu hỏi CLB cung cấp. Cơ chế chấm điểm được mô phỏng theo luật trong tài liệu; ban tổ chức nên duyệt trước khi dùng thi chính thức.</p>
+        </div>
+      </div>
     </section>
 
     <section id="quizScreen" class="screen">
@@ -266,7 +349,7 @@
     const MAX_SCORE = QUESTIONS.reduce((sum, q) => sum + Number(q.points || 0), 0);
     const STORAGE_KEY = 'olympiaMathClubLeaderboardV1';
     const $ = (selector) => document.querySelector(selector);
-    const screens = ['#homeScreen', '#quizScreen', '#resultScreen'];
+    const screens = ['#homeScreen', '#quizScreen', '#resultScreen', '#obstacleScreen'];
 
     let teamName = '';
     let currentIndex = 0;
@@ -508,6 +591,216 @@
         renderLeaderboard();
       }
     });
+
+
+    // VONG 2 - VUOT CHUONG NGAI VAT (ban mo phong theo tai lieu CLB)
+    const obstacleClues = [
+      { title: 'Hàng ngang 1', text: 'Calendar, Sites, Keep, Chat là các tiện ích của hệ sinh thái nào?', answer: 'Google' },
+      { title: 'Hàng ngang 2', text: 'Tích của số nguyên tố có 3 chữ số lớn nhất có tổng các chữ số bé hơn 20 và số nguyên tố bé nhất là bao nhiêu?', answer: '1982' },
+      { title: 'Hàng ngang 3', text: 'Sự kiện James Watt phát minh ra động cơ hơi nước thuộc cuộc __ công nghiệp lần thứ nhất. Điền vào chỗ trống.', answer: 'cách mạng' },
+      { title: 'Hàng ngang 4', text: 'Thuật ngữ tiếng Anh của một đường dẫn cho phép truy cập đến một trang khác được gọi là gì?', answer: 'hyperlink' },
+      { title: 'Ô trung tâm', text: '“Utopia” và “Dystopia” là hai từ trái ngược nhau, thường dùng để nói về điều gì?', answer: 'thế giới' }
+    ];
+    const OBSTACLE_KEYWORD = 'worldwideweb';
+    let obstacleIndex = 0;
+    let obstacleScore = 0;
+    let obstacleTimerId = null;
+    let obstacleSeconds = 15;
+    let obstacleAnswered = false;
+    let obstacleTeamName = '';
+    let obstacleRoundEnded = false;
+
+    function normalizeObstacleAnswer(value) {
+      return String(value || '').trim().toLocaleLowerCase('vi')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd').replace(/[^a-z0-9]/g, '');
+    }
+
+    function stopObstacleTimer() {
+      if (obstacleTimerId) window.clearInterval(obstacleTimerId);
+      obstacleTimerId = null;
+    }
+
+    function updateObstacleTimer() {
+      $('#obstacleTimerText').textContent = `${obstacleSeconds}s`;
+      $('#obstacleTimerBox').classList.toggle('warning', obstacleSeconds <= 5);
+    }
+
+    function startObstacleTimer() {
+      stopObstacleTimer();
+      obstacleSeconds = 15;
+      updateObstacleTimer();
+      obstacleTimerId = window.setInterval(() => {
+        obstacleSeconds -= 1;
+        updateObstacleTimer();
+        if (obstacleSeconds <= 0) {
+          stopObstacleTimer();
+          if (!obstacleAnswered && !obstacleRoundEnded) finishObstacleClue('', true);
+        }
+      }, 1000);
+    }
+
+    function renderObstacleProgress() {
+      const container = $('#obstacleClueList');
+      container.textContent = '';
+      obstacleClues.forEach((clue, index) => {
+        const chip = document.createElement('div');
+        chip.className = 'obstacle-clue-dot' + (index < obstacleIndex ? ' done' : index === obstacleIndex ? ' active' : '');
+        chip.textContent = index === 4 ? 'Ô giữa' : `Hàng ${index + 1}`;
+        container.append(chip);
+      });
+      $('#obstacleStepLabel').textContent = `GỢI Ý ${Math.min(obstacleIndex + 1, 5)} / 5`;
+      $('#obstacleScoreLabel').textContent = `${obstacleScore} ĐIỂM`;
+    }
+
+    function startObstacleRound() {
+      const typedName = $('#teamName').value.trim();
+      if (!typedName) {
+        alert('Bạn hãy nhập tên đội trước khi bắt đầu nhé.');
+        $('#teamName').focus();
+        return;
+      }
+      obstacleTeamName = typedName;
+      obstacleIndex = 0;
+      obstacleScore = 0;
+      obstacleAnswered = false;
+      obstacleRoundEnded = false;
+      $('#obstacleTeam').textContent = obstacleTeamName;
+      $('#obstacleSummary').classList.add('obstacle-hidden');
+      $('#obstacleKeywordArea').classList.add('obstacle-hidden');
+      $('#obstacleAfterAnswer').classList.add('obstacle-hidden');
+      $('#obstacleAnswerArea').classList.remove('obstacle-hidden');
+      showScreen('#obstacleScreen');
+      renderObstacleClue();
+    }
+
+    function renderObstacleClue() {
+      stopObstacleTimer();
+      obstacleAnswered = false;
+      const clue = obstacleClues[obstacleIndex];
+      $('#obstaclePromptTitle').textContent = clue.title;
+      $('#obstaclePromptText').textContent = clue.text;
+      $('#obstacleAnswerInput').value = '';
+      $('#obstacleAnswerInput').disabled = false;
+      $('#obstacleFeedback').className = 'obstacle-feedback';
+      $('#obstacleFeedback').textContent = '';
+      $('#obstacleAnswerArea').classList.remove('obstacle-hidden');
+      $('#obstacleAfterAnswer').classList.add('obstacle-hidden');
+      $('#obstacleKeywordArea').classList.add('obstacle-hidden');
+      $('#obstacleSubmitAnswer').disabled = false;
+      $('#obstacleSubmitAnswer').textContent = 'GỬI ĐÁP ÁN';
+      renderObstacleProgress();
+      startObstacleTimer();
+      $('#obstacleAnswerInput').focus();
+    }
+
+    function finishObstacleClue(value, timedOut) {
+      if (obstacleAnswered || obstacleRoundEnded) return;
+      obstacleAnswered = true;
+      stopObstacleTimer();
+      const clue = obstacleClues[obstacleIndex];
+      const isCorrect = normalizeObstacleAnswer(value) === normalizeObstacleAnswer(clue.answer);
+      if (isCorrect) obstacleScore += 10;
+      $('#obstacleAnswerInput').disabled = true;
+      $('#obstacleSubmitAnswer').disabled = true;
+      const feedback = $('#obstacleFeedback');
+      feedback.className = `obstacle-feedback show ${isCorrect ? 'good' : 'bad'}`;
+      feedback.textContent = isCorrect
+        ? `Chính xác! +10 điểm. Đáp án: ${clue.answer}.`
+        : `${timedOut ? 'Hết thời gian.' : 'Chưa chính xác.'} Đáp án được ghi trong tài liệu: ${clue.answer}.`;
+      $('#obstacleScoreLabel').textContent = `${obstacleScore} ĐIỂM`;
+      $('#obstacleAfterAnswer').classList.remove('obstacle-hidden');
+      $('#obstacleNextClue').textContent = obstacleIndex === 4 ? 'KẾT THÚC VÒNG 2' : 'MỞ GỢI Ý TIẾP THEO';
+      $('#obstacleGuessKeyword').disabled = false;
+      $('#obstacleNextClue').disabled = false;
+    }
+
+    function openObstacleKeyword() {
+      if (!obstacleAnswered || obstacleRoundEnded) return;
+      $('#obstacleAfterAnswer').classList.add('obstacle-hidden');
+      $('#obstacleAnswerArea').classList.add('obstacle-hidden');
+      $('#obstacleKeywordArea').classList.remove('obstacle-hidden');
+      const bonusByClue = [60, 50, 40, 30, 20];
+      $('#obstacleKeywordPrompt').textContent = `Từ khóa gồm 12 ký tự. Nếu trả lời đúng lúc này, bạn nhận thêm ${bonusByClue[obstacleIndex]} điểm thưởng.`;
+      $('#obstacleKeywordInput').value = '';
+      $('#obstacleKeywordInput').focus();
+      startObstacleKeywordTimer();
+    }
+
+    function startObstacleKeywordTimer() {
+      stopObstacleTimer();
+      obstacleSeconds = 15;
+      updateObstacleTimer();
+      obstacleTimerId = window.setInterval(() => {
+        obstacleSeconds -= 1;
+        updateObstacleTimer();
+        if (obstacleSeconds <= 0) {
+          stopObstacleTimer();
+          if (!obstacleRoundEnded && !$('#obstacleKeywordArea').classList.contains('obstacle-hidden')) {
+            endObstacleRound(false, 'Hết 15 giây trả lời từ khóa. Từ khóa là WORLD WIDE WEB.');
+          }
+        }
+      }, 1000);
+    }
+
+    function submitObstacleKeyword() {
+      if (obstacleRoundEnded) return;
+      stopObstacleTimer();
+      const guess = normalizeObstacleAnswer($('#obstacleKeywordInput').value);
+      if (!guess) {
+        alert('Bạn hãy nhập từ khóa trước khi chốt.');
+        return;
+      }
+      const bonusByClue = [60, 50, 40, 30, 20];
+      if (guess === OBSTACLE_KEYWORD) {
+        obstacleScore += bonusByClue[obstacleIndex];
+        endObstacleRound(true, `Chính xác! Từ khóa là WORLD WIDE WEB. Bạn nhận ${bonusByClue[obstacleIndex]} điểm thưởng.`);
+      } else {
+        endObstacleRound(false, 'Bạn trả lời sai từ khóa nên bị loại khỏi vòng này theo luật trong tài liệu CLB. Đáp án là WORLD WIDE WEB.');
+      }
+    }
+
+    function nextObstacleClue() {
+      if (!obstacleAnswered || obstacleRoundEnded) return;
+      if (obstacleIndex < obstacleClues.length - 1) {
+        obstacleIndex += 1;
+        renderObstacleClue();
+      } else {
+        endObstacleRound(false, 'Bạn đã mở hết 4 hàng ngang và gợi ý trung tâm nhưng chưa chốt đúng từ khóa. Từ khóa là WORLD WIDE WEB.');
+      }
+    }
+
+    function endObstacleRound(keywordSolved, message) {
+      stopObstacleTimer();
+      obstacleRoundEnded = true;
+      $('#obstacleAnswerArea').classList.add('obstacle-hidden');
+      $('#obstacleAfterAnswer').classList.add('obstacle-hidden');
+      $('#obstacleKeywordArea').classList.add('obstacle-hidden');
+      $('#obstacleSummary').classList.remove('obstacle-hidden');
+      $('#obstacleResultTitle').textContent = keywordSolved ? 'Chinh phục thành công!' : 'Kết thúc lượt chơi';
+      $('#obstacleFinalScore').textContent = `${obstacleScore} điểm`;
+      $('#obstacleResultMessage').textContent = `${message} Đội ${obstacleTeamName} đạt ${obstacleScore} điểm ở phần thi này.`;
+      $('#obstacleScoreLabel').textContent = `${obstacleScore} ĐIỂM`;
+    }
+
+    function cancelObstacleKeyword() {
+      if (obstacleRoundEnded) return;
+      stopObstacleTimer();
+      $('#obstacleKeywordArea').classList.add('obstacle-hidden');
+      $('#obstacleAnswerArea').classList.remove('obstacle-hidden');
+      $('#obstacleAfterAnswer').classList.remove('obstacle-hidden');
+    }
+
+    $('#obstacleStartButton').addEventListener('click', startObstacleRound);
+    $('#obstacleSubmitAnswer').addEventListener('click', () => finishObstacleClue($('#obstacleAnswerInput').value, false));
+    $('#obstacleAnswerInput').addEventListener('keydown', (event) => { if (event.key === 'Enter') finishObstacleClue($('#obstacleAnswerInput').value, false); });
+    $('#obstacleGuessKeyword').addEventListener('click', openObstacleKeyword);
+    $('#obstacleNextClue').addEventListener('click', nextObstacleClue);
+    $('#obstacleSubmitKeyword').addEventListener('click', submitObstacleKeyword);
+    $('#obstacleKeywordInput').addEventListener('keydown', (event) => { if (event.key === 'Enter') submitObstacleKeyword(); });
+    $('#obstacleCancelKeyword').addEventListener('click', cancelObstacleKeyword);
+    $('#obstacleRetry').addEventListener('click', startObstacleRound);
+    $('#obstacleHome').addEventListener('click', () => { stopObstacleTimer(); showScreen('#homeScreen'); });
 
     renderLeaderboard();
   </script>
