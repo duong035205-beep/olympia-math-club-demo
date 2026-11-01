@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101b3d" />
+  <title>OLYMPIA – Math Club</title>
+  <style>
+    :root {
+      --navy: #101b3d;
+      --navy-2: #172653;
+      --blue: #4263eb;
+      --cyan: #54d6e8;
+      --gold: #f6bd4b;
+      --ink: #18213b;
+      --muted: #68738f;
+      --paper: #f4f7ff;
+      --white: #ffffff;
+      --green: #15966b;
+      --red: #d84b5b;
+      --line: #e4e9f5;
+      --shadow: 0 18px 50px rgba(16, 27, 61, .12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: radial-gradient(circle at 12% 8%, #e3eaff 0, transparent 30%),
+                  radial-gradient(circle at 90% 80%, #dcf8fb 0, transparent 27%), var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .topbar {
+      background: var(--navy);
+      color: white;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: .08em; }
+    .brand-mark {
+      width: 38px; height: 38px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--navy); background: var(--gold);
+      font-weight: 950; font-size: 19px;
+    }
+    .top-note { color: #c5d2f6; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+    main { width: min(100% - 32px, 980px); margin: 34px auto 54px; }
+    .screen { display: none; }
+    .screen.active { display: block; animation: appear .25s ease-out; }
+    @keyframes appear { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .hero {
+      position: relative; overflow: hidden; border-radius: 28px; padding: clamp(26px, 6vw, 58px);
+      color: white; background: linear-gradient(130deg, var(--navy), #203b7c 72%, #285b91);
+      box-shadow: var(--shadow);
+    }
+    .hero::after {
+      content: "π"; position: absolute; right: 4%; top: -42px; font-size: clamp(180px, 34vw, 330px);
+      line-height: 1; font-weight: 900; color: rgba(255,255,255,.055); pointer-events: none;
+    }
+    .eyebrow { color: var(--cyan); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .19em; }
+    h1 { margin: 12px 0 10px; font-size: clamp(36px, 7vw, 66px); line-height: .98; letter-spacing: -.045em; }
+    .hero p { max-width: 580px; color: #d9e3ff; line-height: 1.65; margin: 16px 0 25px; }
+    .hero-tag { display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px; border: 1px solid rgba(255,255,255,.24); border-radius: 99px; color: #e8eeff; font-size: 12px; }
+    .panel {
+      background: rgba(255,255,255,.94); border: 1px solid rgba(220,228,245,.9); border-radius: 22px;
+      padding: 24px; box-shadow: var(--shadow);
+    }
+    .home-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; margin-top: 18px; }
+    .panel h2 { margin: 0 0 7px; font-size: 20px; }
+    .sub { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 18px; }
+    label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+    input[type="text"] {
+      width: 100%; border: 1px solid #d8dfef; border-radius: 12px; padding: 14px 15px; outline: none;
+      background: #fbfcff; color: var(--ink); transition: border .15s, box-shadow .15s;
+    }
+    input[type="text"]:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(66,99,235,.12); }
+    .primary, .secondary, .quiet {
+      border: 0; border-radius: 12px; padding: 13px 18px; font-weight: 800; transition: transform .12s, filter .12s;
+    }
+    .primary { background: var(--gold); color: #24233a; box-shadow: 0 7px 18px rgba(246,189,75,.24); }
+    .secondary { background: var(--blue); color: white; }
+    .quiet { background: #edf1fb; color: #34436c; }
+    .primary:hover, .secondary:hover, .quiet:hover { filter: brightness(.97); transform: translateY(-1px); }
+    .start-button { width: 100%; margin-top: 13px; }
+    .round-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .round-chip { padding: 12px; background: #f3f6ff; border: 1px solid #e5ebfa; border-radius: 13px; }
+    .round-chip strong { display: block; font-size: 13px; }
+    .round-chip span { color: var(--muted); font-size: 11px; }
+    .leaderboard { margin-top: 18px; }
+    .leader-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .leader-row:last-child { border-bottom: 0; }
+    .rank { display: inline-grid; place-items: center; width: 25px; height: 25px; margin-right: 8px; border-radius: 8px; background: #eef2ff; font-weight: 900; color: var(--blue); }
+    .score-pill { background: #fff4d8; color: #825600; border-radius: 99px; padding: 5px 9px; font-weight: 900; white-space: nowrap; }
+    .empty { color: var(--muted); font-size: 13px; padding: 10px 0; }
+    .quiz-shell { max-width: 790px; margin: 0 auto; }
+    .quiz-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .team-label { color: var(--muted); font-size: 13px; }
+    .team-label strong { color: var(--ink); }
+    .timer {
+      display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 12px;
+      background: white; border: 1px solid var(--line); font-weight: 900; color: var(--navy); min-width: 88px; justify-content: center;
+    }
+    .timer.warning { color: var(--red); border-color: #f3c4ca; background: #fff7f8; }
+    .progress-track { height: 8px; background: #e5eaf6; border-radius: 99px; overflow: hidden; margin-bottom: 18px; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: inherit; transition: width .2s; }
+    .question-card { padding: clamp(20px, 4vw, 34px); }
+    .question-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    .round-label { background: #eef2ff; color: #3c55b4; padding: 7px 11px; border-radius: 99px; font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .points { color: #8a650e; background: #fff5d9; border-radius: 99px; padding: 7px 11px; font-size: 12px; font-weight: 900; }
+    .question-number { font-size: 12px; color: var(--muted); font-weight: 700; }
+    .question-text { font-size: clamp(21px, 3.7vw, 29px); line-height: 1.4; margin: 8px 0 23px; letter-spacing: -.02em; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .option {
+      display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left; min-height: 66px;
+      padding: 14px; border: 1px solid #dfe5f2; border-radius: 13px; background: #fbfcff; color: var(--ink);
+      font-weight: 650; line-height: 1.4; transition: border .12s, background .12s, transform .12s;
+    }
+    .option:hover:not(:disabled) { border-color: #9aabef; background: #f5f7ff; transform: translateY(-1px); }
+    .option:disabled { cursor: default; }
+    .option-letter { flex: 0 0 27px; height: 27px; display: grid; place-items: center; border-radius: 8px; background: #edf1fb; color: #526184; font-size: 12px; font-weight: 950; }
+    .option.correct { border-color: #78cdb0; background: #effbf6; }
+    .option.correct .option-letter { background: #c9f0e1; color: #08784f; }
+    .option.incorrect { border-color: #e9a0a8; background: #fff3f4; }
+    .option.incorrect .option-letter { background: #f9dadd; color: #a32c3b; }
+    .feedback { display: none; margin-top: 17px; border-radius: 13px; padding: 14px 15px; line-height: 1.5; font-size: 13px; }
+    .feedback.show { display: block; }
+    .feedback.good { background: #effbf6; color: #176b50; border: 1px solid #c8eedf; }
+    .feedback.bad { background: #fff5f5; color: #8b3440; border: 1px solid #f3d4d7; }
+    .question-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 17px; align-items: center; }
+    .question-actions .secondary { margin-left: auto; }
+    .result-hero { text-align: center; padding: 34px 20px; background: linear-gradient(135deg, #101b3d, #254b91); color: white; border-radius: 22px; }
+    .result-hero .medal { font-size: 42px; }
+    .result-hero h2 { font-size: 28px; margin: 8px 0; }
+    .big-score { font-size: clamp(42px, 10vw, 66px); font-weight: 950; color: var(--gold); line-height: 1.1; }
+    .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+    .stat { text-align: center; background: #f4f7ff; border-radius: 14px; padding: 16px 8px; }
+    .stat strong { display: block; font-size: 23px; color: var(--navy); }
+    .stat span { color: var(--muted); font-size: 11px; }
+    .review { margin-top: 18px; }
+    .review-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .review-item:last-child { border-bottom: 0; }
+    .review-q { font-weight: 750; font-size: 14px; line-height: 1.5; }
+    .review-a { margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    footer { text-align: center; margin: 25px 0 0; color: #8791aa; font-size: 11px; }
+    @media (max-width: 700px) {
+      .home-grid { grid-template-columns: 1fr; }
+      .options { grid-template-columns: 1fr; }
+      .top-note { display: none; }
+      .hero { border-radius: 20px; }
+    }
+    @media (max-width: 420px) {
+      main { width: min(100% - 20px, 980px); margin-top: 18px; }
+      .panel { padding: 18px; }
+      .result-stats { gap: 6px; }
+      .stat { padding: 13px 5px; }
+      .quiz-head { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">π</div><span>OLYMPIA <span style="color:#54d6e8">MATH CLUB</span></span></div>
+    <div class="top-note">Tri thức · Tư duy · Bứt phá</div>
+  </header>
+
+  <main>
+    <section id="homeScreen" class="screen active">
+      <div class="hero">
+        <div class="eyebrow">Sân chơi trí tuệ · Phiên bản thử nghiệm</div>
+        <h1>CHINH PHỤC<br>ĐỈNH OLYMPIA.</h1>
+        <p>Thử sức với những câu hỏi Toán học, chinh phục từng vòng thi và ghi tên đội của bạn lên bảng thành tích của CLB.</p>
+        <span class="hero-tag">✦ Bản demo dành cho CLB Toán học</span>
+      </div>
+
+      <div class="home-grid">
+        <section class="panel">
+          <h2>Sẵn sàng tranh tài?</h2>
+          <p class="sub">Nhập tên đội hoặc biệt danh trước khi bắt đầu. Mỗi câu có 20 giây để trả lời.</p>
+          <label for="teamName">Tên đội thi</label>
+          <input id="teamName" type="text" maxlength="28" placeholder="Ví dụ: Pi-thon, Đội Newton..." autocomplete="off" />
+          <button id="startButton" class="primary start-button">BẮT ĐẦU THI THỬ&nbsp; →</button>
+          <p class="sub" style="margin:12px 0 0;font-size:11px">Bộ đề hiện tại chỉ là dữ liệu minh họa. Bạn có thể thay bằng câu hỏi chính thức của CLB trong file <b>questions.js</b>.</p>
+        </section>
+
+        <section class="panel">
+          <h2>Cấu trúc vòng thi</h2>
+          <p class="sub">12 câu hỏi · Tối đa 230 điểm</p>
+          <div class="round-list">
+            <div class="round-chip"><strong>01 · Khởi động</strong><span>4 câu · 10 điểm/câu</span></div>
+            <div class="round-chip"><strong>02 · Vượt chướng ngại</strong><span>2 câu · 20 điểm/câu</span></div>
+            <div class="round-chip"><strong>03 · Tăng tốc</strong><span>3 câu · 20 điểm/câu</span></div>
+            <div class="round-chip"><strong>04 · Về đích</strong><span>3 câu · 30 điểm/câu</span></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel leaderboard">
+        <h2>🏆 Bảng thành tích trên thiết bị này</h2>
+        <p class="sub">Kết quả được lưu trong trình duyệt hiện tại, không tự đồng bộ sang thiết bị khác.</p>
+        <div id="leaderboardList" class="empty">Chưa có lượt thi nào. Hãy là đội đầu tiên!</div>
+        <button id="clearLeaderboard" class="quiet" style="margin-top:12px;padding:9px 12px;font-size:11px">Xóa bảng thành tích</button>
+      </section>
+    </section>
+
+    <section id="quizScreen" class="screen">
+      <div class="quiz-shell">
+        <div class="quiz-head">
+          <div class="team-label">ĐỘI ĐANG THI<br><strong id="activeTeam">—</strong></div>
+          <div id="timerBox" class="timer">◷ <span id="timerText">20s</span></div>
+        </div>
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div class="panel question-card">
+          <div class="question-meta">
+            <span id="roundLabel" class="round-label">Khởi động</span>
+            <span id="pointsLabel" class="points">10 ĐIỂM</span>
+          </div>
+          <div id="questionNumber" class="question-number">CÂU 01 / 12</div>
+          <h2 id="questionText" class="question-text">Nội dung câu hỏi</h2>
+          <div id="optionsList" class="options"></div>
+          <div id="feedback" class="feedback" aria-live="polite"></div>
+          <div class="question-actions">
+            <span id="scoreSoFar" class="team-label">Điểm hiện tại: <strong>0</strong></span>
+            <button id="nextButton" class="secondary" style="display:none">CÂU TIẾP THEO →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="result-hero">
+        <div class="medal">🏆</div>
+        <div class="eyebrow">Hoàn thành phần thi</div>
+        <h2 id="resultTeam">Đội thi</h2>
+        <div class="big-score"><span id="finalScore">0</span><span style="font-size:19px;color:#e5edff"> / 230 điểm</span></div>
+        <p id="resultMessage" style="color:#d5e0ff;margin:8px 0 0">Kết quả của bạn</p>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="result-stats">
+          <div class="stat"><strong id="correctCount">0/12</strong><span>Số câu đúng</span></div>
+          <div class="stat"><strong id="accuracy">0%</strong><span>Tỉ lệ chính xác</span></div>
+          <div class="stat"><strong id="elapsedTime">0:00</strong><span>Thời gian thi</span></div>
+        </div>
+        <div class="review">
+          <h2>Đáp án và giải thích</h2>
+          <p class="sub">Xem lại những câu bạn đã trả lời và kiến thức cần ghi nhớ.</p>
+          <div id="reviewList"></div>
+        </div>
+        <div class="result-actions">
+          <button id="retryButton" class="primary">THI LƯỢT MỚI</button>
+          <button id="homeButton" class="quiet">VỀ TRANG CHỦ</button>
+        </div>
+      </div>
+    </section>
+    <footer>OLYMPIA MATH CLUB · DEMO VERSION · Được xây dựng với sự hỗ trợ của AI</footer>
+  </main>
+
+  <script src="questions.js"></script>
+  <script>
+    const QUESTIONS = Array.isArray(window.OLYMPIA_QUESTIONS) ? window.OLYMPIA_QUESTIONS : [];
+    const TIME_PER_QUESTION = 20;
+    const MAX_SCORE = QUESTIONS.reduce((sum, q) => sum + Number(q.points || 0), 0);
+    const STORAGE_KEY = 'olympiaMathClubLeaderboardV1';
+    const $ = (selector) => document.querySelector(selector);
+    const screens = ['#homeScreen', '#quizScreen', '#resultScreen'];
+
+    let teamName = '';
+    let currentIndex = 0;
+    let score = 0;
+    let correct = 0;
+    let secondsLeft = TIME_PER_QUESTION;
+    let timerId = null;
+    let answered = false;
+    let answers = [];
+    let startedAt = 0;
+
+    function showScreen(id) {
+      screens.forEach((selector) => $(selector).classList.toggle('active', selector === id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function readLeaderboard() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn('Không đọc được bảng thành tích:', error);
+        return [];
+      }
+    }
+
+    function renderLeaderboard() {
+      const list = readLeaderboard().sort((a, b) => b.score - a.score || a.time - b.time).slice(0, 10);
+      const container = $('#leaderboardList');
+      container.textContent = '';
+      if (!list.length) {
+        container.className = 'empty';
+        container.textContent = 'Chưa có lượt thi nào. Hãy là đội đầu tiên!';
+        return;
+      }
+      container.className = '';
+      list.forEach((entry, index) => {
+        const row = document.createElement('div');
+        row.className = 'leader-row';
+        const name = document.createElement('span');
+        const rank = document.createElement('span');
+        rank.className = 'rank';
+        rank.textContent = String(index + 1);
+        const team = document.createElement('strong');
+        team.textContent = entry.team;
+        name.append(rank, team);
+        const points = document.createElement('span');
+        points.className = 'score-pill';
+        points.textContent = `${entry.score} điểm`;
+        row.append(name, points);
+        container.append(row);
+      });
+    }
+
+    function stopTimer() {
+      if (timerId) window.clearInterval(timerId);
+      timerId = null;
+    }
+
+    function startTimer() {
+      stopTimer();
+      secondsLeft = TIME_PER_QUESTION;
+      updateTimer();
+      timerId = window.setInterval(() => {
+        secondsLeft -= 1;
+        updateTimer();
+        if (secondsLeft <= 0) {
+          stopTimer();
+          lockAnswer(null, true);
+        }
+      }, 1000);
+    }
+
+    function updateTimer() {
+      $('#timerText').textContent = `${secondsLeft}s`;
+      $('#timerBox').classList.toggle('warning', secondsLeft <= 5);
+    }
+
+    function startQuiz() {
+      if (!QUESTIONS.length) {
+        alert('Chưa có câu hỏi. Hãy kiểm tra file questions.js.');
+        return;
+      }
+      const typedName = $('#teamName').value.trim();
+      if (!typedName) {
+        alert('Bạn hãy nhập tên đội trước khi bắt đầu nhé.');
+        $('#teamName').focus();
+        return;
+      }
+      teamName = typedName;
+      currentIndex = 0;
+      score = 0;
+      correct = 0;
+      answers = [];
+      startedAt = Date.now();
+      $('#activeTeam').textContent = teamName;
+      showScreen('#quizScreen');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      answered = false;
+      const q = QUESTIONS[currentIndex];
+      $('#roundLabel').textContent = q.round;
+      $('#pointsLabel').textContent = `${q.points} ĐIỂM`;
+      $('#questionNumber').textContent = `CÂU ${String(currentIndex + 1).padStart(2, '0')} / ${QUESTIONS.length}`;
+      $('#questionText').textContent = q.question;
+      $('#scoreSoFar').innerHTML = `Điểm hiện tại: <strong>${score}</strong>`;
+      $('#progressFill').style.width = `${(currentIndex / QUESTIONS.length) * 100}%`;
+      $('#feedback').className = 'feedback';
+      $('#feedback').textContent = '';
+      $('#nextButton').style.display = 'none';
+      $('#nextButton').textContent = currentIndex === QUESTIONS.length - 1 ? 'XEM KẾT QUẢ →' : 'CÂU TIẾP THEO →';
+
+      const options = $('#optionsList');
+      options.textContent = '';
+      q.options.forEach((optionText, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'option';
+        const letter = document.createElement('span');
+        letter.className = 'option-letter';
+        letter.textContent = String.fromCharCode(65 + index);
+        const text = document.createElement('span');
+        text.textContent = optionText;
+        button.append(letter, text);
+        button.addEventListener('click', () => lockAnswer(index, false));
+        options.append(button);
+      });
+      startTimer();
+    }
+
+    function lockAnswer(selectedIndex, timedOut) {
+      if (answered) return;
+      answered = true;
+      stopTimer();
+      const q = QUESTIONS[currentIndex];
+      const isCorrect = selectedIndex === q.answerIndex;
+      if (isCorrect) {
+        score += Number(q.points);
+        correct += 1;
+      }
+      answers.push({ selectedIndex, isCorrect, timedOut });
+      const buttons = [...$('#optionsList').querySelectorAll('.option')];
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === q.answerIndex) button.classList.add('correct');
+        if (selectedIndex === index && !isCorrect) button.classList.add('incorrect');
+      });
+      const feedback = $('#feedback');
+      feedback.className = `feedback show ${isCorrect ? 'good' : 'bad'}`;
+      const correctLetter = String.fromCharCode(65 + q.answerIndex);
+      let heading = isCorrect ? `Chính xác! +${q.points} điểm.` : timedOut ? 'Hết thời gian! Bạn chưa nhận được điểm câu này.' : 'Chưa chính xác. Cố gắng ở câu tiếp theo nhé!';
+      feedback.textContent = `${heading} Đáp án đúng: ${correctLetter}. ${q.explanation}`;
+      $('#scoreSoFar').innerHTML = `Điểm hiện tại: <strong>${score}</strong>`;
+      $('#nextButton').style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+      if (!answered) return;
+      if (currentIndex < QUESTIONS.length - 1) {
+        currentIndex += 1;
+        renderQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function formatDuration(milliseconds) {
+      const seconds = Math.max(0, Math.floor(milliseconds / 1000));
+      const minutesPart = Math.floor(seconds / 60);
+      const secondsPart = String(seconds % 60).padStart(2, '0');
+      return `${minutesPart}:${secondsPart}`;
+    }
+
+    function finishQuiz() {
+      stopTimer();
+      const elapsed = Date.now() - startedAt;
+      const attempt = {
+        team: teamName,
+        score,
+        correct,
+        total: QUESTIONS.length,
+        time: elapsed,
+        date: new Date().toISOString()
+      };
+      try {
+        const entries = readLeaderboard();
+        entries.push(attempt);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      } catch (error) {
+        console.warn('Không thể lưu bảng thành tích:', error);
+      }
+      $('#resultTeam').textContent = teamName;
+      $('#finalScore').textContent = String(score);
+      $('#correctCount').textContent = `${correct}/${QUESTIONS.length}`;
+      $('#accuracy').textContent = `${Math.round((correct / QUESTIONS.length) * 100)}%`;
+      $('#elapsedTime').textContent = formatDuration(elapsed);
+      $('#resultMessage').textContent = score >= MAX_SCORE * .8 ? 'Thành tích rất ấn tượng! Hãy tiếp tục thử thách bản thân.' : 'Cảm ơn đội đã tham gia. Hãy xem lại lời giải để tiến bộ hơn!';
+      renderReview();
+      renderLeaderboard();
+      showScreen('#resultScreen');
+    }
+
+    function renderReview() {
+      const container = $('#reviewList');
+      container.textContent = '';
+      QUESTIONS.forEach((q, index) => {
+        const answer = answers[index] || { selectedIndex: null, isCorrect: false };
+        const item = document.createElement('div');
+        item.className = 'review-item';
+        const question = document.createElement('div');
+        question.className = 'review-q';
+        question.textContent = `${index + 1}. ${q.question}`;
+        const detail = document.createElement('div');
+        detail.className = 'review-a';
+        const correctLetter = String.fromCharCode(65 + q.answerIndex);
+        const selectedText = answer.selectedIndex === null ? 'Không chọn đáp án' : `Bạn chọn ${String.fromCharCode(65 + answer.selectedIndex)}`;
+        detail.textContent = `${answer.isCorrect ? '✓ Chính xác' : '✗ Chưa đúng'} · ${selectedText} · Đáp án: ${correctLetter} — ${q.options[q.answerIndex]}. ${q.explanation}`;
+        item.append(question, detail);
+        container.append(item);
+      });
+    }
+
+    function returnHome() {
+      stopTimer();
+      renderLeaderboard();
+      showScreen('#homeScreen');
+    }
+
+    $('#startButton').addEventListener('click', startQuiz);
+    $('#teamName').addEventListener('keydown', (event) => { if (event.key === 'Enter') startQuiz(); });
+    $('#nextButton').addEventListener('click', nextQuestion);
+    $('#retryButton').addEventListener('click', () => { $('#teamName').value = teamName; startQuiz(); });
+    $('#homeButton').addEventListener('click', returnHome);
+    $('#clearLeaderboard').addEventListener('click', () => {
+      if (confirm('Bạn có chắc muốn xóa toàn bộ thành tích trên trình duyệt này?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderLeaderboard();
+      }
+    });
+
+    renderLeaderboard();
+  </script>
+</body>
+</html>
